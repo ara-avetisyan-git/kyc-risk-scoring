@@ -1,0 +1,11 @@
+customer_id,customer_type,country_of_residence,nationality,product,channel,expected_monthly_volume,business_sector,pep,adverse_media,sanctions_status
+K001,individual,AM,AM,domestic_payment,face_to_face,800,salaried,no,no,none
+K002,individual,AM,AM,cross_border_transfer,remote_verified,3500,salaried,no,no,none
+K003,individual,AM,IR,cross_border_transfer,remote_verified,1500,salaried,no,no,none
+K004,individual,AM,AM,bill_payment,face_to_face,600,salaried,yes,no,none
+K005,legal_entity,AM,AM,cash_deposit,face_to_face,45000,gambling,no,no,none
+K006,legal_entity,DE,DE,cross_border_transfer,intermediary,60000,crypto_services,no,yes,none
+K007,individual,AM,AM,domestic_payment,face_to_face,900,salaried,no,no,potential
+K008,individual,AM,AM,domestic_payment,face_to_face,900,salaried,no,no,confirmed
+K009,individual,,,,,,,no,no,none
+K010,ngo,GE,GE,cross_border_transfer,remote_verified,8000,,no,no,none

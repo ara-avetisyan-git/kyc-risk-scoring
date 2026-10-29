@@ -1,0 +1,91 @@
+# Illustrative risk model. Weights, country lists and bands are examples only:
+# calibrate and approve them against your own risk assessment before real use.
+version: "1.0"
+
+scale: {min: 1, max: 3}
+
+# Lower bounds of the score (0-100) for each level
+levels: {medium: 40, high: 70}
+
+factors:
+  country:
+    type: country
+    weight: 0.30
+    fields: [country_of_residence, nationality]   # worst case across fields counts
+    high: [KP, IR, MM]                            # maintain from FATF / national lists
+    medium: [AF, SY, YE, VE, HT]
+    default: 1
+    missing: 3                                    # a data gap is treated as high risk
+
+  customer_type:
+    type: mapping
+    weight: 0.15
+    field: customer_type
+    scores: {individual: 1, sole_proprietor: 2, legal_entity: 2, trust: 3, ngo: 3}
+    default: 3
+    missing: 3
+
+  product:
+    type: mapping
+    weight: 0.20
+    field: product
+    scores: {domestic_payment: 1, bill_payment: 1, cross_border_transfer: 3, cash_deposit: 2, prepaid_card: 2}
+    default: 3
+    missing: 3
+
+  channel:
+    type: mapping
+    weight: 0.10
+    field: channel
+    scores: {face_to_face: 1, remote_verified: 2, intermediary: 3, remote_unverified: 3}
+    default: 3
+    missing: 3
+
+  expected_monthly_volume:
+    type: bands
+    weight: 0.15
+    field: expected_monthly_volume                # in EUR
+    bands:
+      - {upto: 2000, score: 1}
+      - {upto: 20000, score: 2}
+      - {upto: null, score: 3}
+    missing: 3
+
+  business_sector:
+    type: mapping
+    weight: 0.10
+    field: business_sector
+    scores: {salaried: 1, retail: 2, construction: 2, gambling: 3, crypto_services: 3, precious_metals: 3, money_services: 3}
+    default: 2
+    missing: 1                                    # not applicable to many individuals
+
+overrides:
+  - name: pep
+    when: {field: pep, equals: "yes"}
+    min_level: high
+    reason: Politically exposed person requires enhanced due diligence
+  - name: adverse_media
+    when: {field: adverse_media, equals: "yes"}
+    min_level: medium
+    reason: Adverse media found
+  - name: high_risk_country
+    when: {factor: country, score_at_least: 3}
+    min_level: high
+    reason: Link to a high-risk jurisdiction
+  - name: high_risk_sector
+    when: {factor: business_sector, score_at_least: 3}
+    min_level: high
+    reason: Business sector is considered high risk (e.g. gambling, crypto services, money services)
+  - name: sanctions_potential_match
+    when: {field: sanctions_status, equals: potential}
+    action: escalate
+    reason: Potential sanctions match must be reviewed by the MLRO before onboarding
+  - name: sanctions_confirmed
+    when: {field: sanctions_status, equals: confirmed}
+    action: reject
+    reason: Confirmed sanctions match - do not onboard, freeze and report as required
+
+due_diligence:
+  low:    {measures: SDD, review_months: 36, approval: Standard}
+  medium: {measures: CDD, review_months: 24, approval: Standard}
+  high:   {measures: EDD, review_months: 12, approval: Senior management}
